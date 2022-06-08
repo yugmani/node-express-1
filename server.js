@@ -2,6 +2,9 @@
 const express = require("express");
 const app = express();
 
+//activate the express json-parsor
+app.use(express.json());
+
 //Port number assigned
 const PORT = 5050;
 
@@ -59,14 +62,51 @@ app.get("/api/notes/:id", (request, response) => {
   if (myNote) {
     response.json(myNote);
   } else {
-    response.send(`
-      <div>    
-        <h1>Error</h1>
-        <h3>The requested data with id ${myId} is not found.</h3>
-        <p><em>Please, try again.</em></p>
-    </div>
-      `);
+    response.status(404).end();
+    // response.send(`
+    //   <div>
+    //     <h1>Error</h1>
+    //     <h3>The requested data with id ${myId} is not found.</h3>
+    //     <p><em>Please, try again.</em></p>
+    // </div>
+    //   `);
   }
+});
+
+//deleting a specific item with the id given by user
+app.delete("/api/notes/:id", (request, response) => {
+  const id = Number(request.params.id);
+  notes = notes.filter((note) => note.id !== id);
+  console.log(notes);
+  response.json(notes);
+});
+
+const generateNewId = () => {
+  const maxId = notes.length > 0 ? Math.max(...notes.map((n) => n.id)) : 0;
+  return maxId + 1;
+};
+
+//Adding an item in data
+app.post("/api/notes", (request, response) => {
+  const body = request.body;
+
+  if (!body.content) {
+    return response.status(400).json({
+      error: "content missing",
+    });
+  }
+
+  const newNote = {
+    content: body.content,
+    important: body.important || false,
+    date: new Date(),
+    id: generateNewId(),
+  };
+
+  notes = [...notes, newNote];
+
+  console.log(newNote);
+  response.json(newNote);
 });
 
 //listening server on the specified port
